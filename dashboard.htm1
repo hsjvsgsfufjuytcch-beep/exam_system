@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>پنل معلم</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <div class="header">
+                <h1>📚 پنل طراحی آزمون</h1>
+                <button onclick="logout()" class="btn-logout">خروج</button>
+            </div>
+
+            <div class="exam-builder">
+                <h2>ساخت آزمون جدید</h2>
+
+                <input type="text" id="exam-title" placeholder="عنوان آزمون (مثل: ریاضی فصل ۱)" />
+
+                <div id="questions-container">
+                    <!-- سوالات به صورت داینامیک اضافه می‌شوند -->
+                </div>
+
+                <button onclick="addQuestion()" class="btn-add">➕ افزودن سوال جدید</button>
+                <button onclick="saveExam()" class="btn-save">💾 ذخیره آزمون</button>
+                <p id="save-msg" class="success"></p>
+            </div>
+
+            <div class="exam-list">
+                <h3>آزمون‌های ذخیره‌شده</h3>
+                <div id="saved-exams"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questionCount = 0;
+
+        // افزودن سوال
+        function addQuestion() {
+            questionCount++;
+            const container = document.getElementById('questions-container');
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.id = `q-${questionCount}`;
+            div.innerHTML = `
+                <div class="q-header">
+                    <span>سوال ${questionCount}</span>
+                    <button onclick="removeQuestion('${div.id}')" class="btn-remove">✖</button>
+                </div>
+                <textarea placeholder="متن سوال را بنویسید..." class="q-text"></textarea>
+                <div class="q-options">
+                    <label>نوع سوال:
+                        <select class="q-type">
+                            <option value="test">تستی (چهارگزینه‌ای)</option>
+                            <option value="descriptive">تشریحی</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="test-options">
+                    <input type="text" placeholder="گزینه ۱" class="opt-1" />
+                    <input type="text" placeholder="گزینه ۲" class="opt-2" />
+                    <input type="text" placeholder="گزینه ۳" class="opt-3" />
+                    <input type="text" placeholder="گزینه ۴" class="opt-4" />
+                    <input type="number" placeholder="شماره گزینه صحیح (۱ تا ۴)" class="correct-opt" min="1" max="4" />
+                </div>
+                <div class="descriptive-options" style="display:none;">
+                    <textarea placeholder="پاسخنامه (راهنمای تصحیح)..." class="answer-key"></textarea>
+                </div>
+                <hr />
+            `;
+            container.appendChild(div);
+
+            // نمایش/مخفی کردن گزینه‌ها بر اساس نوع سوال
+            const typeSelect = div.querySelector('.q-type');
+            const testOpts = div.querySelector('.test-options');
+            const descOpts = div.querySelector('.descriptive-options');
+
+            typeSelect.addEventListener('change', function() {
+                if (this.value === 'test') {
+                    testOpts.style.display = 'block';
+                    descOpts.style.display = 'none';
+                } else {
+                    testOpts.style.display = 'none';
+                    descOpts.style.display = 'block';
+                }
+            });
+        }
+
+        // حذف سوال
+        function removeQuestion(id) {
+            document.getElementById(id).remove();
+            // به‌روزرسانی شماره سوالات
+            const items = document.querySelectorAll('.question-item');
+            items.forEach((el, index) => {
+                el.querySelector('.q-header span').textContent = `سوال ${index + 1}`;
+            });
+            questionCount = items.length;
+        }
+
+        // ذخیره آزمون
+        function saveExam() {
+            const title = document.getElementById('exam-title').value.trim();
+            if (!title) {
+                document.getElementById('save-msg').textContent = '❌ لطفاً عنوان آزمون را وارد کنید.';
+                return;
+            }
+
+            const questions = [];
+            const items = document.querySelectorAll('.question-item');
+
+            items.forEach(el => {
+                const qText = el.querySelector('.q-text').value.trim();
+                const type = el.querySelector('.q-type').value;
+                const qData = { text: qText, type: type };
+
+                if (type === 'test') {
+                    qData.options = [
+                        el.querySelector('.opt-1').value.trim(),
+                        el.querySelector('.opt-2').value.trim(),
+                        el.querySelector('.opt-3').value.trim(),
+                        el.querySelector('.opt-4').value.trim()
+                    ];
+                    qData.correct = parseInt(el.querySelector('.correct-opt').value) || 0;
+                } else {
+                    qData.answerKey = el.querySelector('.answer-key').value.trim();
+                }
+
+                questions.push(qData);
+            });
+
+            if (questions.length === 0) {
+                document.getElementById('save-msg').textContent = '❌ حداقل یک سوال اضافه کنید.';
+                return;
+            }
+
+            // ذخیره در localStorage
+            let exams = JSON.parse(localStorage.getItem('exams')) || [];
+            const exam = {
+                id: Date.now(),
+                title: title,
+                teacher: JSON.parse(localStorage.getItem('currentUser')).username,
+                questions: questions,
+                createdAt: new Date().toLocaleDateString('fa-IR')
+            };
+            exams.push(exam);
+            localStorage.setItem('exams', JSON.stringify(exams));
+
+            document.getElementById('save-msg').textContent = '✅ آزمون با موفقیت ذخیره شد!';
+            loadSavedExams();
+            document.getElementById('exam-title').value = '';
+            document.getElementById('questions-container').innerHTML = '';
+            questionCount = 0;
+        }
+
+        // بارگذاری آزمون‌های ذخیره‌شده
+        function loadSavedExams() {
+            const container = document.getElementById('saved-exams');
+            const exams = JSON.parse(localStorage.getItem('exams')) || [];
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            const myExams = exams.filter(e => e.teacher === currentUser.username);
+
+            if (myExams.length === 0) {
+                container.innerHTML = '<p style="color:#888;">هیچ آزمونی ساخته نشده است.</p>';
+                return;
+            }
+
+            container.innerHTML = myExams.map((exam, index) => `
+                <div class="exam-card">
+                    <strong>${exam.title}</strong>
+                    <span>📅 ${exam.createdAt}</span>
+                    <span>❓ ${exam.questions.length} سوال</span>
+                    <button onclick="deleteExam(${exam.id})" class="btn-delete">🗑️ حذف</button>
+                    <button onclick="copyExamLink(${exam.id})" class="btn-copy">📋 کپی لینک</button>
+                </div>
+            `).join('');
+        }
+
+        // حذف آزمون
+        function deleteExam(id) {
+            let exams = JSON.parse(localStorage.getItem('exams')) || [];
+            exams = exams.filter(e => e.id !== id);
+            localStorage.setItem('exams', JSON.stringify(exams));
+            loadSavedExams();
+        }
+
+        // کپی لینک (برای دانش‌آموزان)
+        function copyExamLink(id) {
+            const link = `${window.location.origin}${window.location.pathname.replace('dashboard.html', 'exam.html')}?id=${id}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ لینک آزمون کپی شد!');
+            });
+        }
+
+        // خروج
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        // بارگذاری اولیه
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || user.role !== 'teacher') {
+                window.location.href = 'index.html';
+            }
+            loadSavedExams();
+        };
+    </script>
+</body>
+</html>
