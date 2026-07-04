@@ -1,0 +1,190 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Tahoma', sans-serif;
+    background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+}
+.login-box, .dashboard, #exam-container {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(6px);
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    border: 1px solid #444;
+    color: #fff;
+}
+h1 {
+    text-align: center;
+    color: #f3c623;
+    margin-bottom: 5px;
+}
+.sub {
+    text-align: center;
+    color: #aaa;
+    margin-bottom: 25px;
+}
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.tab-btn {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.tab-btn.active {
+    background: #f3c623;
+    color: #1e1e2f;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+input, select, textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border: 1px solid #555;
+    border-radius: 12px;
+    background: #2a2a44;
+    color: #fff;
+    font-size: 1rem;
+}
+input::placeholder, textarea::placeholder {
+    color: #888;
+}
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+button:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+}
+.btn-logout {
+    background: #ff6b6b;
+    color: #fff;
+    width: auto;
+    padding: 8px 20px;
+    border-radius: 30px;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.question-item {
+    background: #2a2a44;
+    padding: 20px;
+    border-radius: 20px;
+    margin: 15px 0;
+    border-left: 4px solid #f3c623;
+}
+.q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.btn-remove {
+    background: #ff6b6b;
+    width: auto;
+    padding: 5px 15px;
+    border-radius: 20px;
+    color: #fff;
+}
+.btn-add {
+    background: #4caf50;
+    color: #fff;
+}
+.btn-save {
+    background: #f3c623;
+    color: #1e1e2f;
+}
+.btn-submit {
+    background: #4caf50;
+    color: #fff;
+}
+.test-options input {
+    width: 48%;
+    display: inline-block;
+}
+.error {
+    color: #ff6b6b;
+    margin-top: 10px;
+}
+.success {
+    color: #4caf50;
+    margin-top: 10px;
+}
+.exam-card {
+    background: #2a2a44;
+    padding: 15px;
+    border-radius: 15px;
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+}
+.exam-card strong {
+    flex: 1;
+}
+.btn-delete {
+    background: #ff6b6b;
+    color: #fff;
+    width: auto;
+    padding: 5px 15px;
+}
+.btn-copy {
+    background: #4a9eff;
+    color: #fff;
+    width: auto;
+    padding: 5px 15px;
+}
+.exam-question {
+    background: #2a2a44;
+    padding: 20px;
+    border-radius: 20px;
+    margin: 15px 0;
+}
+.exam-question label {
+    display: block;
+    margin: 5px 0;
+}
+.result-box {
+    background: #2a2a44;
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+    display: none;
+}
