@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سامانه آزمون‌سازی</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h1>📝 سامانه آزمون‌سازی</h1>
+            <p class="sub">برای معلمان و دانش‌آموزان</p>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('login')">ورود</button>
+                <button class="tab-btn" onclick="showTab('register')">ثبت‌نام</button>
+            </div>
+
+            <!-- فرم ورود -->
+            <div id="login" class="tab-content active">
+                <input type="text" id="login-username" placeholder="نام کاربری" />
+                <input type="password" id="login-password" placeholder="رمز عبور" />
+                <button onclick="loginUser()">ورود به سامانه</button>
+                <p id="login-error" class="error"></p>
+            </div>
+
+            <!-- فرم ثبت‌نام -->
+            <div id="register" class="tab-content">
+                <input type="text" id="reg-username" placeholder="نام کاربری" />
+                <input type="password" id="reg-password" placeholder="رمز عبور" />
+                <select id="reg-role">
+                    <option value="teacher">معلم</option>
+                    <option value="student">دانش‌آموز</option>
+                </select>
+                <button onclick="registerUser()">ثبت‌نام</button>
+                <p id="reg-error" class="error"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // نمایش تب
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`).classList.add('active');
+        }
+
+        // ثبت‌نام
+        function registerUser() {
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const role = document.getElementById('reg-role').value;
+            const error = document.getElementById('reg-error');
+
+            if (!username || !password) {
+                error.textContent = 'لطفاً همه فیلدها را پر کنید.';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.find(u => u.username === username)) {
+                error.textContent = 'این نام کاربری قبلاً ثبت شده است.';
+                return;
+            }
+
+            users.push({ username, password, role });
+            localStorage.setItem('users', JSON.stringify(users));
+            error.textContent = '✅ ثبت‌نام با موفقیت انجام شد! حالا وارد شوید.';
+            error.style.color = '#4caf50';
+            setTimeout(() => {
+                showTab('login');
+                error.textContent = '';
+                error.style.color = '#ff6b6b';
+            }, 1500);
+        }
+
+        // ورود
+        function loginUser() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const error = document.getElementById('login-error');
+
+            if (!username || !password) {
+                error.textContent = 'لطفاً نام کاربری و رمز را وارد کنید.';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (!user) {
+                error.textContent = 'نام کاربری یا رمز عبور اشتباه است.';
+                return;
+            }
+
+            localStorage.setItem('currentUser', JSON.stringify(user));
+
+            if (user.role === 'teacher') {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'exam.html';
+            }
+        }
+    </script>
+</body>
+</html>
