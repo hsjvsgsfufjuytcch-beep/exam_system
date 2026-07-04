@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>شرکت در آزمون</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <div id="exam-container">
+            <div class="exam-header">
+                <h1 id="exam-title">عنوان آزمون</h1>
+                <button onclick="logout()" class="btn-logout">خروج</button>
+            </div>
+
+            <div id="exam-questions"></div>
+
+            <button onclick="submitExam()" class="btn-submit">📤 ارسال پاسخ‌ها</button>
+            <div id="result" class="result-box"></div>
+        </div>
+    </div>
+
+    <script>
+        let examData = null;
+
+        // دریافت آزمون از localStorage با استفاده از id موجود در URL
+        function loadExam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const examId = urlParams.get('id');
+
+            if (!examId) {
+                document.getElementById('exam-title').textContent = '❌ لینک آزمون نامعتبر است.';
+                return;
+            }
+
+            const exams = JSON.parse(localStorage.getItem('exams')) || [];
+            examData = exams.find(e => e.id == examId);
+
+            if (!examData) {
+                document.getElementById('exam-title').textContent = '❌ آزمون پیدا نشد.';
+                return;
+            }
+
+            document.getElementById('exam-title').textContent = `📝 ${examData.title}`;
+
+            const container = document.getElementById('exam-questions');
+            container.innerHTML = examData.questions.map((q, index) => {
+                let html = `<div class="exam-question"><p><strong>سوال ${index + 1}:</strong> ${q.text}</p>`;
+
+                if (q.type === 'test') {
+                    html += `<div class="options">`;
+                    q.options.forEach((opt, i) => {
+                        html += `
+                            <label>
+                                <input type="radio" name="q${index}" value="${i + 1}" />
+                                ${opt}
+                            </label><br />
+                        `;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `
+                        <textarea class="descriptive-answer" rows="3" placeholder="پاسخ خود را بنویسید..."></textarea>
+                    `;
+                }
+
+                html += `<hr /></div>`;
+                return html;
+            }).join('');
+        }
+
+        // ارسال پاسخ‌ها
+        function submitExam() {
+            if (!examData) return;
+
+            const answers = [];
+            const questions = document.querySelectorAll('.exam-question');
+            let correctCount = 0;
+
+            questions.forEach((q, index) => {
+                const qData = examData.questions[index];
+                let userAnswer = '';
+
+                if (qData.type === 'test') {
+                    const selected = q.querySelector('input[type="radio"]:checked');
+                    userAnswer = selected ? parseInt(selected.value) : 'پاسخی انتخاب نشده';
+                    if (userAnswer === qData.correct) correctCount++;
+                } else {
+                    const textarea = q.querySelector('.descriptive-answer');
+                    userAnswer = textarea ? textarea.value.trim() : '';
+                }
+
+                answers.push({
+                    questionIndex: index,
+                    answer: userAnswer
+                });
+            });
+
+            // ذخیره پاسخ‌ها در localStorage
+            let submissions = JSON.parse(localStorage.getItem('submissions')) || [];
+            const submission = {
+                examId: examData.id,
+                student: JSON.parse(localStorage.getItem('currentUser'))?.username || 'ناشناس',
+                answers: answers,
+                submittedAt: new Date().toLocaleDateString('fa-IR')
+            };
+
+            // برای آزمون تستی، نمره را محاسبه کن
+            if (examData.questions.every(q => q.type === 'test')) {
+                const total = examData.questions.length;
+                submission.score = `${correctCount} از ${total}`;
+                submission.percent = Math.round((correctCount / total) * 100);
+            } else {
+                submission.score = 'نیاز به تصحیح معلم';
+                submission.percent = null;
+            }
+
+            submissions.push(submission);
+            localStorage.setItem('submissions', JSON.stringify(submissions));
+
+            // نمایش نتیجه
+            const resultDiv = document.getElementById('result');
+            if (submission.percent !== null) {
+                resultDiv.innerHTML = `
+                    <h3>✅ نتیجه آزمون</h3>
+                    <p>نمره شما: <strong>${submission.score}</strong> (${submission.percent}%)</p>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <h3>✅ پاسخ‌ها ثبت شد.</h3>
+                    <p>معلم شما پاسخ‌های تشریحی را بررسی خواهد کرد.</p>
+                `;
+            }
+            resultDiv.style.display = 'block';
+
+            // غیرفعال کردن دکمه ارسال
+            document.querySelector('.btn-submit').disabled = true;
+        }
+
+        // خروج
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) {
+                window.location.href = 'index.html';
+            }
+            loadExam();
+        };
+    </script>
+</body>
+</html>
